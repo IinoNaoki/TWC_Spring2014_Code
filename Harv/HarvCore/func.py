@@ -15,10 +15,7 @@ from copy import deepcopy
 import random
 import time
 
-from HarvCore.header import *
-
-%test
-    
+from HarvCore.header import *    
 
 def pro_e(e1, params, parabola_flag=0):
     if parabola_flag==0:
