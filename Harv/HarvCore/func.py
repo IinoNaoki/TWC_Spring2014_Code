@@ -16,6 +16,8 @@ import random
 import time
 
 from HarvCore.header import *
+
+%test
     
 
 def pro_e(e1, params, parabola_flag=0):
