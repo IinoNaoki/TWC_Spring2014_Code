@@ -20,19 +20,19 @@ from matplotlib.transforms import Bbox
 
 from scipy.optimize import curve_fit
 
-A_CONST = 4
-L_CONST = 5
-B_CONST = 5
-E_CONST = 10
-DISCOUNT_FACTOR = 0.8
-TEST_PARAM_CONST = {'A':A_CONST, 'A_inf':A_CONST+1, \
-              'L':L_CONST, 'E':E_CONST, \
-              'B':B_CONST, 'B_inf':B_CONST+1, \
-              'GAM':DISCOUNT_FACTOR,\
-              'DELTA': 0.1, \
-              'LMAT': None, \
-              'WMAT': None, \
-              'SIG': None}
+# A_CONST = 4
+# L_CONST = 5
+# B_CONST = 5
+# E_CONST = 10
+# DISCOUNT_FACTOR = 0.8
+# TEST_PARAM_CONST = {'A':A_CONST, 'A_inf':A_CONST+1, \
+#               'L':L_CONST, 'E':E_CONST, \
+#               'B':B_CONST, 'B_inf':B_CONST+1, \
+#               'GAM':DISCOUNT_FACTOR,\
+#               'DELTA': 0.1, \
+#               'LMAT': None, \
+#               'WMAT': None, \
+#               'SIG': None}
 
 
 from mpl_toolkits.mplot3d import Axes3D
