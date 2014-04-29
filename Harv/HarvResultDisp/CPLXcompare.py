@@ -31,6 +31,8 @@ A = 2
 L = 2
 W = 2
 
+#test
+
 # G = 10
 
 # print CPLX(G,L,W,A, 'thresh')
