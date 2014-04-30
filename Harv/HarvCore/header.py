@@ -24,53 +24,17 @@ import random
 # B_CONST = 1
 # E_CONST = 2
 # DISCOUNT_FACTOR = 0.8
-# TEST_PARAM_CONST = {'A':A_CONST, 'A_inf':A_CONST+1, \
+# TEST_PARAM_CONST = {'A':A_CONST, \
 #               'L':L_CONST, 'E':E_CONST, \
-#               'B':B_CONST, 'B_inf':B_CONST+1, \
+#               'B':B_CONST, \
 #               'GAM':DISCOUNT_FACTOR,\
 #               'DELTA': 0.1, \
 #               'LMAT': None, \
 #               'WMAT': None, \
 #               'SIG': None}
 
-def RandWalk(A, e1,l1,w1, tick, params):
-    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A_inf']+1)
-    tickstep = tick
-    total_act = 0
-    block_act = 0
-    e_cu, l_cu, w_cu = e1, l1, w1
-    while tickstep>0:
-        total_act = total_act + 1
-        p_new = 0.0
-        dice = random.uniform(0,1)
-        if w_cu!=params['A_inf'] and w_cu>e_cu:
-            block_act = block_act + 1
-        for e_ne in rangeE:
-            _flag = 0
-            for l_ne in rangeL:
-                for w_ne in rangeW:
-                    p_delta = OverallTransProb(e_cu,l_cu,w_cu, e_ne,l_ne,w_ne, A[e_cu][l_cu][w_cu], params)
-                    if p_delta==0:
-                        pass
-                    else:
-                        p_new = p_new + p_delta
-                    if dice<=p_new:
-                        e_cu, l_cu, w_cu = e_ne, l_ne, w_ne
-                        tickstep = tickstep - 1
-#                         print "Remained:", tickstep,"... (e,w)=",e_cu,w_cu
-                        _flag = 1
-                        break
-                    else:
-                        pass
-                if _flag==1:
-                    break
-            if _flag==1:
-                break
-#     print block_act, total_act
-    return (1.0*block_act)/(1.0*total_act)
-
 def CompareMat(m1,m2, params):
-    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A_inf']+1)
+    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
     for e in rangeE:
         for l in rangeL:
             for w in rangeW:
@@ -90,7 +54,7 @@ def ShowMatrix(Mat, mode, fixdim, fixnum, params):
         print "ERROR, UNKNOWN MATRIX"
         exit()
     
-    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A_inf']+1)
+    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
     dimList = ['e','l','w']
     feasList = [rangeE, rangeL, rangeW]
     del(feasList[dimList.index(fixdim)])
@@ -143,16 +107,16 @@ def L_mat(l1, l2, params):
 
 def W_mat(wo1, wo2, params):
     if params['WMAT']==None:
-        mat_omg = [[1.0/(params['A_inf']+1.0) for _ in range(params['A_inf']+1)] for _ in range(params['A_inf']+1)]
+        mat_omg = [[1.0/(params['A']+1.0) for _ in range(params['A']+1)] for _ in range(params['A']+1)]
     else:
         mat_omg = params['WMAT']
-    if 0<=wo1 and wo1<=params['A_inf'] and 0<=wo2 and wo2<=params['A_inf']:  
+    if 0<=wo1 and wo1<=params['A'] and 0<=wo2 and wo2<=params['A']:  
         return mat_omg[wo1][wo2]
     else:
         return 0.0
 
 def W(i,wo1,wo2, params):
-    if i<0 and i>params['A_inf']:
+    if i<0 and i>params['A']:
         return 0.0
     else:
         if wo2==i:
@@ -162,40 +126,12 @@ def W(i,wo1,wo2, params):
 
 def sig(j, params):
     if params['SIG']==None:
-        sig_set = [1.0/(params['B_inf']+1.0) for _ in range(params['B_inf']+1)]
+        sig_set = [1.0/(params['B']+1.0) for _ in range(params['B']+1)]
     else:
         sig_set = params['SIG'] 
-    if 0<=j and j<=params['B_inf']:
+    
+    if 0<=j and j<=params['B']:
         return sig_set[j]
-    else:
-        return 0.0
-
-#     if params['SIG']==None:
-#         sig_set = [1.0/(params['B']+1.0) for _ in range(params['B']+1)]
-#     else:
-#         sig_set = params['SIG'] 
-#     if 0<=j and j<=params['B']:
-#         return sig_set[j]
-#     else:
-#         return 0.0
-
-def E_e_minus_infty(e1,l1,w1, e2,l2,w2, params):
-    if e1<0 or e1>params['E'] or l1<0 or l1>params['L'] or w1<0 or w1>params['A_inf'] or \
-        e2<0 or e2>params['E'] or l2<0 or l2>params['L'] or w2<0 or w2>params['A_inf']:
-        return 0.0
-    
-    if e2==0:
-        return W(params['A_inf'], w1, w2, params)
-    else:
-        return 0.0
-
-def E_e_plus_infty(e1,l1,w1, e2,l2,w2, params):
-    if e1<0 or e1>params['E'] or l1<0 or l1>params['L'] or w1<0 or w1>params['A_inf'] or \
-        e2<0 or e2>params['E'] or l2<0 or l2>params['L'] or w2<0 or w2>params['A_inf']:
-        return 0.0
-    
-    if e2==params['E']:
-        return W_mat(w1, w2, params)*sig(params['B_inf'], params)
     else:
         return 0.0
 
@@ -266,15 +202,15 @@ def E_tilde(e1,w1, e2,w2, act,j, params):
 
 def OverallTransProb(e1,l1,w1, e2,l2,w2, act, params):
     if act==0:
-        return 1.0 * (E_e_minus_infty(e1,l1,w1, e2,l2,w2, params) + E_tilde(e1,w1, e2,w2, act, None, params)) * L_mat(l1,l2, params)
+        return 1.0 * E_tilde(e1,w1, e2,w2, act, None, params) * L_mat(l1,l2, params)
     else:
         _tmp_sum = 0.0
         for k in range(params['B']+1):
-            _tmp_sum = _tmp_sum + 1.0*sig(k, params)*(E_e_minus_infty(e1,l1,w1, e2,l2,w2, params) + E_tilde(e1,w1, e2,w2, act,k, params))
-        return 1.0* (_tmp_sum + E_e_plus_infty(e1,l1,w1, e2,l2,w2, params)) * L_mat(l1,l2, params)
+            _tmp_sum = _tmp_sum + 1.0 * sig(k, params) * E_tilde(e1,w1, e2,w2, act,k, params)
+        return 1.0 * _tmp_sum * L_mat(l1,l2, params)
 
 def SteadyStateMatrix(optA, params):
-    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A_inf']+1)
+    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
     total_dim = len(rangeE) * len(rangeL) * len(rangeW)
     expanded_matrix = np.matrix( [[0.0 for _ in range(total_dim)] for _ in range(total_dim)] )
     search_list = [[[-1 for _ in rangeW] for _ in rangeL] for _ in rangeE]
@@ -330,69 +266,63 @@ def SteadyStateMatrix(optA, params):
                 steady_p_transf[e][l][w] = steady_p[0,search_list[e][l][w]]  
     return steady_p_transf
 
-def MATOP_GetValueAvg(V, params):
-    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A_inf']+1)
-    v_avg = 0.0
-    for e1 in rangeE:
-        for l1 in rangeL:
-            for w1 in rangeW:
-                v_avg = v_avg + V[e1][l1][w1]
-    v_avg = v_avg*1.0 / (1.0*len(rangeE)*len(rangeL)*len(rangeW))
-    return v_avg
-
-def MATOP_GetValueSteadyAvg(V,A, steady_mat, params):
-    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A_inf']+1)
-    v_steady = 0.0
-#     steady_mat = SteadyStateMatrix(A, params)
-    for e1 in rangeE:
-        for l1 in rangeL:
-            for w1 in rangeW:
-                v_steady = v_steady + steady_mat[e1][l1][w1] * V[e1][l1][w1]
-    return v_steady
-
-def MATOP_GetActionAvg(A, params):
-    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A_inf']+1)
-    a_avg = 0.0
-    for e1 in rangeE:
-        for l1 in rangeL:
-            for w1 in rangeW:
-                a_avg = a_avg + A[e1][l1][w1]
-    a_avg = a_avg*1.0 / (1.0*len(rangeE)*len(rangeL)*len(rangeW))
-    return a_avg
-
-def MATOP_GetActionSteadyAvg(A, steady_mat, params):
-    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A_inf']+1)
-    a_steady = 0.0
-#     steady_mat = SteadyStateMatrix(A, params)
-    for e1 in rangeE:
-        for l1 in rangeL:
-            for w1 in rangeW:
-                a_steady = a_steady + steady_mat[e1][l1][w1] * A[e1][l1][w1]
-    return a_steady
-
-def MATOP_GetBlockingProb(A, steady_mat, params):
-    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A_inf']+1)
-    bp_steady = 0.0
-#     steady_mat = SteadyStateMatrix(A, params)
-    for e1 in rangeE:
-        for l1 in rangeL:
-            for w1 in rangeW:
-                if w1>e1:
-                    bp_steady = bp_steady + steady_mat[e1][l1][w1]
-    return bp_steady
-
-def MATOP_GetEnergySteadyAvg(A, steady_mat, params):
-    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A_inf']+1)
-    eg_steady = 0.0
-#     steady_mat = SteadyStateMatrix(A, params)
-    for e1 in rangeE:
-        for l1 in rangeL:
-            for w1 in rangeW:
-                eg_steady = eg_steady + 1.0* e1 * steady_mat[e1][l1][w1]
-    return eg_steady
 
 def GetOptResultList(V,A, params):
     steady_mat = SteadyStateMatrix(A, params)
-    return [MATOP_GetValueAvg(V, params), MATOP_GetValueSteadyAvg(V,A, steady_mat, params), \
-            MATOP_GetActionAvg(A, params), MATOP_GetActionSteadyAvg(A, steady_mat, params), \
-            MATOP_GetBlockingProb(A, steady_mat, params), MATOP_GetEnergySteadyAvg(A, steady_mat, params) ]
+    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
+    v_avg = 0.0
+    v_steady = 0.0
+    a_avg = 0.0
+    a_steady = 0.0
+    bp_steady = 0.0
+    eg_steady = 0.0
+    for e1 in rangeE:
+        for l1 in rangeL:
+            for w1 in rangeW:
+                # GetValueAvg
+                v_avg = v_avg + V[e1][l1][w1]
+                # GetValueSteadyAvg
+                v_steady = v_steady + steady_mat[e1][l1][w1] * V[e1][l1][w1]
+                # GetActionAvg
+                a_avg = a_avg + A[e1][l1][w1]
+                # GetActionSteadyAvg
+                a_steady = a_steady + steady_mat[e1][l1][w1] * A[e1][l1][w1]
+                # GetBlockingProb
+                if w1>e1:
+                    bp_steady = bp_steady + steady_mat[e1][l1][w1]
+                # GetEnergySteadyAvg
+                eg_steady = eg_steady + 1.0* e1 * steady_mat[e1][l1][w1]
+    v_avg = v_avg*1.0 / (1.0*len(rangeE)*len(rangeL)*len(rangeW))
+    a_avg = a_avg*1.0 / (1.0*len(rangeE)*len(rangeL)*len(rangeW))
+    return [v_avg, v_steady, a_avg, a_steady, bp_steady, eg_steady] 
+
+#    return [MATOP_GetValueAvg(V, params), MATOP_GetValueSteadyAvg(V,A, steady_mat, params), \
+#            MATOP_GetActionAvg(A, params), MATOP_GetActionSteadyAvg(A, steady_mat, params), \
+#            MATOP_GetBlockingProb(A, steady_mat, params), MATOP_GetEnergySteadyAvg(A, steady_mat, params) ]
+
+def BuildTransMatrix(params):    
+    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
+    rangeA = range(2) # 0 and 1
+    TransProb = [
+                 [
+                  [
+                   [
+                    [
+                     [
+                      [ 0.0 for _ in rangeA ] 
+                     for _ in rangeW ]
+                    for _ in rangeL ]
+                   for _ in rangeE ]
+                  for _ in rangeW ]
+                 for _ in rangeL ]
+                for _ in rangeE ]
+    print "BUILDING PROB MATRIX"
+    for e1 in rangeE:
+        for l1 in rangeL:
+            for w1 in rangeW:
+                for e2 in rangeE:
+                    for l2 in rangeL:
+                        for w2 in rangeW:
+                            for act in rangeA:
+                                TransProb[e1][l1][w1][e2][l2][w2][act] = OverallTransProb(e1,l1,w1, e2,l2,w2, act, params)
+    return TransProb

@@ -10,6 +10,8 @@ from pylab import *
 from matplotlib.ticker import FuncFormatter
 from matplotlib.transforms import Bbox
 
+import sys
+sys.path.append("..")
 from HarvCore.func import *
 
 # A = 4 # operation status state: 0, 1, 2, ..., A, +\infty. A+2 states 
@@ -196,49 +198,14 @@ for cur in test_list:
     RESset_rnd[ind] = RE
 
 print "Dumping...",
-pickle.dump(expnum, open("./results/A_Poisson/expnum","w"))
-pickle.dump(Paramsset, open("./results/A_Poisson/paramsset","w"))
-pickle.dump(lam_list, open("./results/A_Poisson/xaxis","w"))
-pickle.dump([Vset_bell, Aset_bell, RESset_bell], open("./results/A_Poisson/bell","w"))
-pickle.dump([Vset_myo, Aset_myo, RESset_myo], open("./results/A_Poisson/myo","w"))
-pickle.dump([Vset_zero, Aset_zero, RESset_zero], open("./results/A_Poisson/zero","w"))
-pickle.dump([Vset_one, Aset_one, RESset_one], open("./results/A_Poisson/one","w"))
-pickle.dump([Vset_rnd, Aset_rnd, RESset_rnd], open("./results/A_Poisson/rnd","w"))
+pickle.dump(expnum, open("../results/A_Poisson/expnum","w"))
+pickle.dump(Paramsset, open("../results/A_Poisson/paramsset","w"))
+pickle.dump(lam_list, open("../results/A_Poisson/xaxis","w"))
+pickle.dump([Vset_bell, Aset_bell, RESset_bell], open("../results/A_Poisson/bell","w"))
+pickle.dump([Vset_myo, Aset_myo, RESset_myo], open("../results/A_Poisson/myo","w"))
+pickle.dump([Vset_zero, Aset_zero, RESset_zero], open("../results/A_Poisson/zero","w"))
+pickle.dump([Vset_one, Aset_one, RESset_one], open("../results/A_Poisson/one","w"))
+pickle.dump([Vset_rnd, Aset_rnd, RESset_rnd], open("../results/A_Poisson/rnd","w"))
 print "Finished"
 
 
-
-# figa = plt.figure(figsize=(4.5,5.0))
-# # grid(True, which="both")
-# plot(lam_list,act_rate_list_A_bell,color='red',marker='o', label='MDP')
-# plot(lam_list,act_rate_list_A_myo,color='green', linestyle='--',fillstyle='none',marker='^', label='MYO')
-# # plot(lam_list,act_rate_list_A_rnd,color='0.75', linestyle='--', fillstyle='none',marker='v',label='RND')
-# xlabel('$A$',fontsize=16)
-# ylabel('Charging rate',fontsize=16)
-# subplots_adjust(top=0.93,bottom=0.16,left=0.12, right=0.95)
-# legend(loc='best')
-# # xlim([2,31])
-# # ylim([-0.02,1.0])
-# ####################################ylim([0.30,0.75])
-# locs, labels = plt.yticks()
-# plt.setp(labels, rotation=90)
-#    
-#    
-# figc = plt.figure(figsize=(4.5,5.0))
-# # grid(True, which="both")
-# plot(lam_list,vavg_list_A_bell,color='red',marker='o',label='MDP')
-# # plot(lam_list,vavg_list_A_zero,color='black',linestyle='--',fillstyle='none',marker='s',label='$\mathcal{A}=0$')
-# # plot(lam_list,vavg_list_A_one,color='blue',linestyle='--',fillstyle='none',marker='x',label='$\mathcal{A}=1$')
-# plot(lam_list,vavg_list_A_myo,color='green',linestyle='--',fillstyle='none',marker='^',label='MYO')
-# # plot(lam_list,vavg_list_A_rnd,color='0.75', linestyle='--', fillstyle='none',marker='v',label='RND')
-# xlabel('$A$',fontsize=16)
-# ylabel('Agent\'s avg. profit',fontsize=16)
-# subplots_adjust(top=0.93,bottom=0.16,left=0.12, right=0.95)
-# legend(loc='best')
-# locs, labels = plt.yticks()
-# plt.setp(labels, rotation=90)
-# # xlim([2,31])
-# # ylim([65,165])
-#    
-# show()
-# print "TERMINATED."
