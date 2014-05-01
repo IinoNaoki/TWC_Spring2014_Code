@@ -14,6 +14,7 @@ import sys
 sys.path.append("..")
 from HarvCore.func import *
 
+
 A = 5 # operation status state: 0, 1, 2, ..., A, +\infty. A+2 states 
 L = 10 # locations numbered: 0, 1, ..., L. L+1 states
 #### WE ASSUME E_CONST>A_CONST and E_CONST>B_CONST
@@ -49,7 +50,44 @@ for e_cur in E_list:
                 'SIG': None}
     ind = E_list.index(e_cur)
     
-    TransProb = BuildTransMatrix(params)
+#     TransProb = BuildTransMatrix(params)
+
+    rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
+    rangeA = range(2) # 0 and 1
+    TransProb = [
+                 [
+                  [
+                   [
+                    [
+                     [
+                      [ 0.0 for _ in rangeA ] 
+                     for _ in rangeW ]
+                    for _ in rangeL ]
+                   for _ in rangeE ]
+                  for _ in rangeW ]
+                 for _ in rangeL ]
+                for _ in rangeE ]
+    print "BUILDING PROB MATRIX"
+    maplist = []
+    for e1 in rangeE:
+        for l1 in rangeL:
+            for w1 in rangeW:
+                for e2 in rangeE:
+                    for l2 in rangeL:
+                        for w2 in rangeW:
+                            for act in rangeA:
+                                maplist.append((e1,l1,w1,e2,l2,w2,act))
+#                                 TransProb[e1][l1][w1][e2][l2][w2][act] = OverallTransProb(e1,l1,w1, e2,l2,w2, act, params)
+    print "2nd"
+    def ParaTransProb(ml,par=params):
+        print ml
+        TransProb[ml[1]][ml[2]][ml[3]][ml[4]][ml[5]][ml[6]] = OverallTransProb(ml[0],ml[1],ml[2], ml[3],ml[4],ml[5], ml[6], par)
+    if __name__=='__main__':
+        print "arrived"
+        pool = Pool()
+        pool.map(ParaTransProb, maplist)
+        pool.close()
+
     
     print "---- ROUND:", E_list.index(e_cur)+1,
     print "out of", len(E_list)

@@ -14,6 +14,9 @@ from matplotlib.ticker import FuncFormatter
 from copy import deepcopy
 import random
 
+from multiprocessing import Pool
+
+__name__=='__main__'
 
 # A_CONST = 10
 # L_CONST = 10
@@ -300,7 +303,34 @@ def GetOptResultList(V,A, params):
 #            MATOP_GetActionAvg(A, params), MATOP_GetActionSteadyAvg(A, steady_mat, params), \
 #            MATOP_GetBlockingProb(A, steady_mat, params), MATOP_GetEnergySteadyAvg(A, steady_mat, params) ]
 
-def BuildTransMatrix(params):    
+# def BuildTransMatrix(params):    
+#     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
+#     rangeA = range(2) # 0 and 1
+#     TransProb = [
+#                  [
+#                   [
+#                    [
+#                     [
+#                      [
+#                       [ 0.0 for _ in rangeA ] 
+#                      for _ in rangeW ]
+#                     for _ in rangeL ]
+#                    for _ in rangeE ]
+#                   for _ in rangeW ]
+#                  for _ in rangeL ]
+#                 for _ in rangeE ]
+#     print "BUILDING PROB MATRIX"
+#     for e1 in rangeE:
+#         for l1 in rangeL:
+#             for w1 in rangeW:
+#                 for e2 in rangeE:
+#                     for l2 in rangeL:
+#                         for w2 in rangeW:
+#                             for act in rangeA:
+#                                 TransProb[e1][l1][w1][e2][l2][w2][act] = OverallTransProb(e1,l1,w1, e2,l2,w2, act, params)
+#     return TransProb
+
+def BuildTransMatrix(params):
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
     rangeA = range(2) # 0 and 1
     TransProb = [
@@ -317,6 +347,7 @@ def BuildTransMatrix(params):
                  for _ in rangeL ]
                 for _ in rangeE ]
     print "BUILDING PROB MATRIX"
+    maplist = []
     for e1 in rangeE:
         for l1 in rangeL:
             for w1 in rangeW:
@@ -324,5 +355,13 @@ def BuildTransMatrix(params):
                     for l2 in rangeL:
                         for w2 in rangeW:
                             for act in rangeA:
-                                TransProb[e1][l1][w1][e2][l2][w2][act] = OverallTransProb(e1,l1,w1, e2,l2,w2, act, params)
+                                maplist.append((e1,l1,w1,e2,l2,w2,act))
+#                                 TransProb[e1][l1][w1][e2][l2][w2][act] = OverallTransProb(e1,l1,w1, e2,l2,w2, act, params)
+    def ParaTransProb(ml):
+        print ml
+        TransProb[ml[1]][ml[2]][ml[3]][ml[4]][ml[5]][ml[6]] = OverallTransProb(ml[0],ml[1],ml[2], ml[3],ml[4],ml[5], ml[6], params)
+#     if __name__=='__main__':
+    pool = Pool()
+    pool.map(ParaTransProb, maplist)
+#     print TransProb
     return TransProb
