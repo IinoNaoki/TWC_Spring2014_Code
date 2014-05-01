@@ -14,10 +14,6 @@ from matplotlib.ticker import FuncFormatter
 from copy import deepcopy
 import random
 
-from multiprocessing import Pool
-
-__name__=='__main__'
-
 # A_CONST = 10
 # L_CONST = 10
 # B_CONST = 10
@@ -328,5 +324,4 @@ def BuildTransMatrix(params):
                         for w2 in rangeW:
                             for act in rangeA:
                                 TransProb[e1][l1][w1][e2][l2][w2][act] = OverallTransProb(e1,l1,w1, e2,l2,w2, act, params)
-    return TransProb
     return TransProb

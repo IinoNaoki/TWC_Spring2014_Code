@@ -7,15 +7,21 @@ Created on 1 May, 2014
 from multiprocessing import Pool
 import numpy
 
-def sqrt(x):
-    return numpy.sqrt(x[0])+x[1]
+import multiprocessing
 
-maplist = []
-for i in range(10):
-    for j in range(100):
-        maplist.append((i,j))
+def worker(num):
+    """thread worker function"""
+    print 'Worker:', num
+    return
 
-if __name__=='__main__':
-    pool = Pool()
-    roots = pool.map(sqrt, maplist)
-    print roots
+def ParaProcess(i):
+    if i==1:
+        print "aaa" + str(i)
+    else:
+        print "bbb"
+    return
+
+if __name__ == '__main__':
+    for i in range(5):
+        p = multiprocessing.Process(target=ParaProcess, args=(i,))
+        p.start()
