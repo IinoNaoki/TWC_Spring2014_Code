@@ -57,6 +57,7 @@ def ImmediateProfit(e1,l1,w1,act, params, parabola_flag=0):
     return weight1*p_l + weight2*p_w
 
 def BellmanSolver(TransProb, params, parabola_flag=0): # the parabola_flag is only used in ThreshCalc module
+    print "MDP"
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
     V_op = [[[0.0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
     A_op = [[[  0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
@@ -99,7 +100,7 @@ def BellmanSolver(TransProb, params, parabola_flag=0): # the parabola_flag is on
                         print "ERROR IN BellmanSolver(params)"
                         exit(0)
                     delta = delta if delta>np.fabs(V_op[e1][l1][w1]-_v_old) else np.fabs(V_op[e1][l1][w1]-_v_old)
-#         print "Delta=",delta
+        print "Delta=",delta
         if delta < params['DELTA']:
             return V_op, A_op
 
@@ -132,13 +133,14 @@ def NaiveSolver_Myopic(TransProb, params):
 #                                 _s_tmp = _s_tmp + OverallTransProb(e1,l1,w1, e2,l2,w2, act, params) * V[e2][l2][w2]
                     V[e1][l1][w1] = ImmediateProfit(e1,l1,w1,act, params) + params['GAM'] * _s_tmp
                     delta = delta if delta>np.fabs(V[e1][l1][w1] -_v_old) else np.fabs(V[e1][l1][w1] -_v_old)
-#         print "Delta=",delta
+        print "Delta=",delta
         if delta < params['DELTA']:
             break
 
     return V, A
 
 def NaiveSolver_Rnd(TransProb, params):
+    print "Random"
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
 #     rangeA = range(2) # 0 and 1
     V = [[[0.0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
@@ -167,7 +169,7 @@ def NaiveSolver_Rnd(TransProb, params):
 #                                 _s_tmp = _s_tmp + OverallTransProb(e1,l1,w1, e2,l2,w2, act, params) * V[e2][l2][w2]
                     V[e1][l1][w1] = ImmediateProfit(e1,l1,w1,act, params) + params['GAM'] * _s_tmp
                     delta = delta if delta>np.fabs(V[e1][l1][w1] -_v_old) else np.fabs(V[e1][l1][w1] -_v_old)
-#         print "Delta=",delta
+        print "Delta=",delta
         if delta < params['DELTA']:
             break
     return V, A
@@ -205,7 +207,7 @@ def NaiveSolver_AllSame(TransProb, act_input, params):
 #                                 _s_tmp = _s_tmp + OverallTransProb(e1,l1,w1, e2,l2,w2, act, params) * V[e2][l2][w2]
                     V[e1][l1][w1] = ImmediateProfit(e1,l1,w1,act, params) + params['GAM'] * _s_tmp
                     delta = delta if delta>np.fabs(V[e1][l1][w1] -_v_old) else np.fabs(V[e1][l1][w1] -_v_old)
-#         print "Delta=",delta
+        print "Delta=",delta
         if delta < params['DELTA']:
             break
     return V, A

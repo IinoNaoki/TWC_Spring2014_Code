@@ -11,7 +11,7 @@ p4
 I5
 sS'E'
 p5
-I5
+I6
 sS'DELTA'
 p6
 F0.1
@@ -32,7 +32,7 @@ F0.3
 sg4
 I5
 sg5
-I6
+I7
 sg6
 F0.1
 sg7
@@ -48,7 +48,7 @@ F0.3
 sg4
 I5
 sg5
-I7
+I8
 sg6
 F0.1
 sg7
@@ -64,7 +64,7 @@ F0.3
 sg4
 I5
 sg5
-I8
+I9
 sg6
 F0.1
 sg7
