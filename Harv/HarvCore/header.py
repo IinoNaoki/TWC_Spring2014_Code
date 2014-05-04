@@ -14,15 +14,7 @@ from matplotlib.ticker import FuncFormatter
 from copy import deepcopy
 import random
 
-# A_CONST = 10
-# L_CONST = 10
-# B_CONST = 10
-# E_CONST = 12
-# A_CONST = 1
-# L_CONST = 1
-# B_CONST = 1
-# E_CONST = 2
-# DISCOUNT_FACTOR = 0.8
+# Example structure
 # TEST_PARAM_CONST = {'A':A_CONST, \
 #               'L':L_CONST, 'E':E_CONST, \
 #               'B':B_CONST, \
@@ -208,32 +200,32 @@ def OverallTransProb(e1,l1,w1, e2,l2,w2, act, params):
             _tmp_sum = _tmp_sum + 1.0 * sig(k, params) * E_tilde(e1,w1, e2,w2, act,k, params)
         return 1.0 * _tmp_sum * L_mat(l1,l2, params)
 
-def SteadyStateMatrix(optA, params):
+def SteadyStateMatrix(transmat, optA, params):
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
     total_dim = len(rangeE) * len(rangeL) * len(rangeW)
     expanded_matrix = np.matrix( [[0.0 for _ in range(total_dim)] for _ in range(total_dim)] )
     search_list = [[[-1 for _ in rangeW] for _ in rangeL] for _ in rangeE]
     
-    TransProb = [
-             [
-              [
-               [
-                [
-                 [
-                  0.0
-                 for _ in rangeW ]
-                for _ in rangeL ]
-               for _ in rangeE ]
-              for _ in rangeW ]
-             for _ in rangeL ]
-            for _ in rangeE ]
-    for e1 in rangeE:
-        for l1 in rangeL:
-            for w1 in rangeW:
-                for e2 in rangeE:
-                    for l2 in rangeL:
-                        for w2 in rangeW:
-                            TransProb[e1][l1][w1][e2][l2][w2] = OverallTransProb(e1,l1,w1, e2,l2,w2, optA[e1][l1][w1], params)
+#     TransProb = [
+#              [
+#               [
+#                [
+#                 [
+#                  [
+#                   0.0
+#                  for _ in rangeW ]
+#                 for _ in rangeL ]
+#                for _ in rangeE ]
+#               for _ in rangeW ]
+#              for _ in rangeL ]
+#             for _ in rangeE ]
+#     for e1 in rangeE:
+#         for l1 in rangeL:
+#             for w1 in rangeW:
+#                 for e2 in rangeE:
+#                     for l2 in rangeL:
+#                         for w2 in rangeW:
+#                             TransProb[e1][l1][w1][e2][l2][w2] = OverallTransProb(e1,l1,w1, e2,l2,w2, optA[e1][l1][w1], params)
     
     # most stupid loops begin!
     # EXPAND, YA!
@@ -244,7 +236,8 @@ def SteadyStateMatrix(optA, params):
                 for e2 in rangeE:
                     for l2 in rangeL:
                         for w2 in rangeW:
-                            expanded_matrix[expd_x_ind, expd_y_ind] = TransProb[e1][l1][w1][e2][l2][w2]
+                            act = optA[e1][l1][w1]
+                            expanded_matrix[expd_x_ind, expd_y_ind] = transmat[e1][l1][w1][e2][l2][w2][act]
                             expd_y_ind = expd_y_ind + 1
                 search_list[e1][l1][w1] = expd_x_ind
                 expd_x_ind = expd_x_ind + 1
@@ -266,8 +259,8 @@ def SteadyStateMatrix(optA, params):
     return steady_p_transf
 
 
-def GetOptResultList(V,A, params):
-    steady_mat = SteadyStateMatrix(A, params)
+def GetOptResultList(V,A, transmat, params):
+    steady_mat = SteadyStateMatrix(transmat, A, params)
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
     v_avg = 0.0
     v_steady = 0.0

@@ -17,7 +17,10 @@ import time
 
 from HarvCore.header import *    
 
-## Old immedi
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
 
 def pro_l_new(l1, act, params):
     # Get price using log-norminal distribution
@@ -44,19 +47,25 @@ def pro_l_new(l1, act, params):
     return profit_loc
 
 def pro_w_new(e1, w1, params):
-    if w1>e1:
-        return -1.0 * w1 / (params['A'] * 1.0)
+    if e1 < w1:
+        return -1.0 * (w1-e1) / (params['A'] * 1.0)
     else:
-        return  math.sqrt(w1*1.0)/math.sqrt(params['A']*1.0) 
+        return  math.sqrt(w1*1.0)/math.sqrt(params['A']*1.0)
 
-def ImmediateProfit(e1,l1,w1,act, params, parabola_flag=0):
-    weight1 = 0.5
-    weight2 = 0.5
+def ImmediateProfit(e1,l1,w1,act, params):
+    weight1 = 0.7
+    weight2 = 0.3
     p_l = pro_l_new(l1, act, params)
     p_w = pro_w_new(e1, w1, params)
     return weight1*p_l + weight2*p_w
 
-def BellmanSolver(TransProb, params, parabola_flag=0): # the parabola_flag is only used in ThreshCalc module
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+
+
+def BellmanSolver(TransProb, params):
     print "MDP"
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
     V_op = [[[0.0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
@@ -66,7 +75,6 @@ def BellmanSolver(TransProb, params, parabola_flag=0): # the parabola_flag is on
         delta = 0.0
         for e1 in rangeE:
             for l1 in rangeL:
-#                 _timestamp_01 = int(round(time.time() * 1000))
                 for w1 in rangeW:
                     _v_old = V_op[e1][l1][w1]
                     _v_temp = [None, None]
@@ -76,26 +84,23 @@ def BellmanSolver(TransProb, params, parabola_flag=0): # the parabola_flag is on
                             for l2 in rangeL:
                                 for w2 in rangeW:
                                     _s_tmp = _s_tmp + TransProb[e1][l1][w1][e2][l2][w2][act] * V_op[e2][l2][w2]
-#                                     _s_tmp = _s_tmp + OverallTransProb(e1,l1,w1, e2,l2,w2, act, params) * V[e2][l2][w2]
-                        _v_temp[act] = ImmediateProfit(e1,l1,w1,act, params, parabola_flag) + params['GAM'] * _s_tmp
+                        _v_temp[act] = ImmediateProfit(e1,l1,w1,act, params) + params['GAM'] * _s_tmp
                     if _v_temp[0] > _v_temp[1] or e1==params['E']:
-#                         V_up[e1][l1][w1] = _v_temp[0]
                         V_op[e1][l1][w1] = _v_temp[0]
                         A_op[e1][l1][w1] = 0
-                    elif _v_temp[0] < _v_temp[1]:
-#                         V_up[e1][l1][w1] = _v_temp[1]
+                    elif _v_temp[0] <= _v_temp[1]:
                         V_op[e1][l1][w1] = _v_temp[1]
                         A_op[e1][l1][w1] = 1
-                    elif _v_temp[0] == _v_temp[1]:
-#                         V_up[e1][l1][w1] = _v_temp[1]
-#                         V[e1][l1][w1] = _v_temp[1]
-#                         A[e1][l1][w1] = 2
-                        if e1==0:
-                            A_op[e1][l1][w1] = 1
-                            V_op[e1][l1][w1] = _v_temp[1]
-                        else:
-                            A_op[e1][l1][w1] = A_op[e1-1][l1][w1]
-                            V_op[e1][l1][w1] = _v_temp[A_op[e1][l1][w1]]
+#                     elif _v_temp[0] == _v_temp[1]:
+# #                         V_up[e1][l1][w1] = _v_temp[1]
+# #                         V[e1][l1][w1] = _v_temp[1]
+# #                         A[e1][l1][w1] = 2
+#                         if e1==0:
+#                             A_op[e1][l1][w1] = 1
+#                             V_op[e1][l1][w1] = _v_temp[1]
+#                         else:
+#                             A_op[e1][l1][w1] = A_op[e1-1][l1][w1]
+#                             V_op[e1][l1][w1] = _v_temp[A_op[e1][l1][w1]]
                     else:
                         print "ERROR IN BellmanSolver(params)"
                         exit(0)
@@ -130,7 +135,6 @@ def NaiveSolver_Myopic(TransProb, params):
                         for l2 in rangeL:
                             for w2 in rangeW:
                                 _s_tmp = _s_tmp + TransProb[e1][l1][w1][e2][l2][w2][act] * V[e2][l2][w2]
-#                                 _s_tmp = _s_tmp + OverallTransProb(e1,l1,w1, e2,l2,w2, act, params) * V[e2][l2][w2]
                     V[e1][l1][w1] = ImmediateProfit(e1,l1,w1,act, params) + params['GAM'] * _s_tmp
                     delta = delta if delta>np.fabs(V[e1][l1][w1] -_v_old) else np.fabs(V[e1][l1][w1] -_v_old)
         print "Delta=",delta
@@ -142,7 +146,6 @@ def NaiveSolver_Myopic(TransProb, params):
 def NaiveSolver_Rnd(TransProb, params):
     print "Random"
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
-#     rangeA = range(2) # 0 and 1
     V = [[[0.0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
     A = [[[0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
     
@@ -166,7 +169,6 @@ def NaiveSolver_Rnd(TransProb, params):
                         for l2 in rangeL:
                             for w2 in rangeW:
                                 _s_tmp = _s_tmp + TransProb[e1][l1][w1][e2][l2][w2][act] * V[e2][l2][w2]
-#                                 _s_tmp = _s_tmp + OverallTransProb(e1,l1,w1, e2,l2,w2, act, params) * V[e2][l2][w2]
                     V[e1][l1][w1] = ImmediateProfit(e1,l1,w1,act, params) + params['GAM'] * _s_tmp
                     delta = delta if delta>np.fabs(V[e1][l1][w1] -_v_old) else np.fabs(V[e1][l1][w1] -_v_old)
         print "Delta=",delta
@@ -180,7 +182,7 @@ def NaiveSolver_AllSame(TransProb, act_input, params):
         exit(0)
     print "All " + str(act_input) + " Scheme, running."
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
-#     rangeA = range(2) # 0 and 1
+
     V = [[[0.0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
     A = [[[act_input for _ in rangeW] for _ in rangeL] for _ in rangeE]
     
@@ -204,7 +206,6 @@ def NaiveSolver_AllSame(TransProb, act_input, params):
                         for l2 in rangeL:
                             for w2 in rangeW:
                                 _s_tmp = _s_tmp + TransProb[e1][l1][w1][e2][l2][w2][act] * V[e2][l2][w2]
-#                                 _s_tmp = _s_tmp + OverallTransProb(e1,l1,w1, e2,l2,w2, act, params) * V[e2][l2][w2]
                     V[e1][l1][w1] = ImmediateProfit(e1,l1,w1,act, params) + params['GAM'] * _s_tmp
                     delta = delta if delta>np.fabs(V[e1][l1][w1] -_v_old) else np.fabs(V[e1][l1][w1] -_v_old)
         print "Delta=",delta
