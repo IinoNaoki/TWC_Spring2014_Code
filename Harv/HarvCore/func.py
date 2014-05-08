@@ -51,13 +51,25 @@ def pro_w_new(e1, w1, params):
         return -1.0 * (w1-e1) / (params['A'] * 1.0)
     else:
         return  math.sqrt(w1*1.0)/math.sqrt(params['A']*1.0)
-
+ 
 def ImmediateProfit(e1,l1,w1,act, params):
     weight1 = 0.7
     weight2 = 0.3
     p_l = pro_l_new(l1, act, params)
     p_w = pro_w_new(e1, w1, params)
     return weight1*p_l + weight2*p_w
+
+
+# def pro_w_new(e1, w1, params):
+#     return  (e1-w1) / (params['A'] * 1.0)
+# 
+# def ImmediateProfit(e1,l1,w1,act, params):
+#     weight1 = 0.7
+#     weight2 = 0.3
+#     p_l = pro_l_new(l1, act, params)
+#     p_w = pro_w_new(e1, w1, params)
+#     return weight1*p_l + weight2*p_w
+
 
 ###################################################################################
 ###################################################################################
@@ -85,25 +97,20 @@ def BellmanSolver(TransProb, params):
                                 for w2 in rangeW:
                                     _s_tmp = _s_tmp + TransProb[e1][l1][w1][e2][l2][w2][act] * V_op[e2][l2][w2]
                         _v_temp[act] = ImmediateProfit(e1,l1,w1,act, params) + params['GAM'] * _s_tmp
-                    if _v_temp[0] > _v_temp[1] or e1==params['E']:
+                    if _v_temp[0] > _v_temp[1]:
                         V_op[e1][l1][w1] = _v_temp[0]
                         A_op[e1][l1][w1] = 0
                     elif _v_temp[0] <= _v_temp[1]:
                         V_op[e1][l1][w1] = _v_temp[1]
                         A_op[e1][l1][w1] = 1
-#                     elif _v_temp[0] == _v_temp[1]:
-# #                         V_up[e1][l1][w1] = _v_temp[1]
-# #                         V[e1][l1][w1] = _v_temp[1]
-# #                         A[e1][l1][w1] = 2
-#                         if e1==0:
-#                             A_op[e1][l1][w1] = 1
-#                             V_op[e1][l1][w1] = _v_temp[1]
-#                         else:
-#                             A_op[e1][l1][w1] = A_op[e1-1][l1][w1]
-#                             V_op[e1][l1][w1] = _v_temp[A_op[e1][l1][w1]]
                     else:
                         print "ERROR IN BellmanSolver(params)"
                         exit(0)
+                    
+                    if e1==params['E']:
+                        V_op[e1][l1][w1] = _v_temp[0]
+                        A_op[e1][l1][w1] = 0
+
                     delta = delta if delta>np.fabs(V_op[e1][l1][w1]-_v_old) else np.fabs(V_op[e1][l1][w1]-_v_old)
         print "Delta=",delta
         if delta < params['DELTA']:

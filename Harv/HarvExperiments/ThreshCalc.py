@@ -4,168 +4,772 @@ Created on 26 Feb, 2014
 @author: yzhang28
 '''
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from pylab import *
-from matplotlib.ticker import FuncFormatter
-from matplotlib.transforms import Bbox
-
 from HarvCore.func import *
 
-A_CONST = 1
-E_CONST = 5
-L_CONST = 4
-#### WE ASSUME E_CONST>A_CONST and E_CONST>B_CONST
-B_CONST = 1 # NOT A STATE, chargeable energy unit: \sigma_0, \sigma_1, ..., \sigma_B, \sigma_{+\infty}
-#B_INFTY = B_CONST + 1
+EXECNUM = 2
 
-DISCOUNT_FACTOR = 0.8
-DELTA = 0.01
-SIG = [0.5, 0.5, 0.0]
+A = 5
+E = 10
+L = 10
+#### WE ASSUME E>A and E>B
+B = 5 # NOT A STATE, chargeable energy unit: \sigma_0, \sigma_1, ..., \sigma_B
 
+DISCOUNT_FACTOR = 0.90
+DELTA = 0.1
 
-# w_line = [[0.60, 0.10, 0.10, 0.10, 0.10, 0.00],
-#           [0.10, 0.10, 0.10, 0.10, 0.60, 0.00]]
-w_line = [[0.90, 0.10, 0.00],
-          [0.10, 0.90, 0.00]]
-wmat = [None for _ in range(len(w_line))]
-for i in range(len(w_line)):
-    wmat[i] = [w_line[i] for _ in range(A_CONST+1+1)]
+def PoissonGenerator(k, lam):
+    def RawPoisson(k, lam):
+        return np.exp(-1.0*lam)*pow(lam,k)/math.factorial(k)
+    def AppxSumToOne(k, lam):
+        '''
+        summation of P^{N}(0), P^{N}(1), to P^{N}(N2)
+        The function is used to check if P^{N}(N2+1) should be neglected  
+        '''
+        if k<0:
+            return 0
+        else:
+            return RawPoisson(k, lam) + AppxSumToOne(k-1, lam)
+    _epsilon = 0.01 
+    if 1.0-AppxSumToOne(k-1, lam)<_epsilon:
+        return 0
+    else:
+        return RawPoisson(k, lam)
 
-for WMAT in wmat:
-    params_e = {'A':A_CONST, 'A_inf':A_CONST+1, \
-                'L':L_CONST, 'E':E_CONST, \
-                'B':B_CONST, 'B_inf':B_CONST+1, \
-                'GAM':DISCOUNT_FACTOR,\
-                'DELTA': DELTA, \
-                'LMAT': None, \
-                'WMAT': WMAT, \
-                'SIG': SIG}
-      
-    V, A = BellmanSolver(params_e, parabola_flag=1)
-    ShowMatrix(A, mode='a', fixdim='w', fixnum=1, params=params_e)
-    # ShowMatrix(A, mode='a', fixdim='w', fixnum=2, params=params_e)
-    # ShowMatrix(A, mode='a', fixdim='w', fixnum=3, params=params_e)
-    ShowMatrix(A, mode='a', fixdim='l', fixnum=1, params=params_e)
-#     ShowMatrix(V, mode='v', fixdim='l', fixnum=1, params=params_e)
-    ShowMatrix(A, mode='a', fixdim='l', fixnum=2, params=params_e)
-#     ShowMatrix(V, mode='v', fixdim='l', fixnum=2, params=params_e)
-    ShowMatrix(A, mode='a', fixdim='l', fixnum=3, params=params_e)
-#     ShowMatrix(V, mode='v', fixdim='l', fixnum=3, params=params_e)
-    print '-------------------------------------------------------------'
-    print '-------------------------------------------------------------'
-    print '-------------------------------------------------------------'
-    print '-------------------------------------------------------------'
+def NMaxFunc(lam):
+    for k in range(65535):
+        if PoissonGenerator(k,lam)==0:
+            return k-1+1
+
+def TruncatedPoisson(k,lam, A_upper):
+    if k<A_upper:
+        return np.exp(-1.0*lam)*pow(lam,k)/math.factorial(k)
+    elif k==A_upper:
+        _tmp_sum = 0.0
+        for c in range(0,k):
+            _tmp_sum = _tmp_sum + np.exp(-1.0*lam)*pow(lam,c)/math.factorial(c)
+        return 1.0 - _tmp_sum 
+    else:
+        return 0.0
+
+if EXECNUM == 1:
     
+    lam_list = [0.5, 3.0]
+    
+    expnum = len(lam_list)
+    ParamsSet  = [None for _ in range(expnum)]
+    TransProbSet = [None for _ in range(expnum)]
+    
+    for ind, cur in enumerate(lam_list):
+        Wmat_cur = [[TruncatedPoisson(k,cur,A) for k in range(0, A+1)] for _ in range(0,A+1)]
+        ParamsSet[ind] = {'A':A, \
+                          'L':L, 'E':E, \
+                          'B':B, \
+                          'GAM':DISCOUNT_FACTOR, \
+                          'DELTA': DELTA, \
+                          'LMAT': None, \
+                          'WMAT': Wmat_cur, \
+                          'SIG': None}
+        
+    for ind, cur in enumerate(lam_list):
+        TransProbSet[ind] = BuildTransMatrix(ParamsSet[ind])
+        
+    print "START COMPUTING..."
+    for ind, cur in enumerate(lam_list):
+        print "---- ROUND:", ind+1,
+        print "out of", len(lam_list)
+        
+        # e, l, w.
+        V, A = BellmanSolver(TransProbSet[ind], ParamsSet[ind])
+        
+        ShowMatrix(A, mode='a', fixdim='w', fixnum=1, params=ParamsSet[ind])
+        print "w=1"
+        ShowMatrix(A, mode='a', fixdim='w', fixnum=2, params=ParamsSet[ind])
+        print "w=3"
+        ShowMatrix(A, mode='a', fixdim='w', fixnum=3, params=ParamsSet[ind])
+        print "w=5"
+        
+        ShowMatrix(A, mode='a', fixdim='e', fixnum=3, params=ParamsSet[ind])
+        print "e=3"
+        ShowMatrix(A, mode='a', fixdim='e', fixnum=5, params=ParamsSet[ind])
+        print "e=5"
+        ShowMatrix(A, mode='a', fixdim='e', fixnum=8, params=ParamsSet[ind])
+        print "e=8"
+        
+        ShowMatrix(A, mode='a', fixdim='l', fixnum=3, params=ParamsSet[ind])
+        print "l=3"
+        ShowMatrix(A, mode='a', fixdim='l', fixnum=5, params=ParamsSet[ind])
+        print "l=5"
+        ShowMatrix(A, mode='a', fixdim='l', fixnum=8, params=ParamsSet[ind])
+        print "l=8"
+        
+        print '-------------------------------------------------------------'
+        print '-------------------------------------------------------------'
+        print '-------------------------------------------------------------'
+        print '-------------------------------------------------------------'
 
-    
-    
-# first result, when proft_e is concave
+
+
 # BUILDING PROB MATRIX
-# Delta= 1.14915638653
-# Delta= 0.495563315636
-# Delta= 0.353328102346
-# Delta= 0.24786051562
-# Delta= 0.170364505285
-# Delta= 0.116002975188
-# Delta= 0.0785100379132
-# Delta= 0.0528944107324
-# Delta= 0.035510303836
-# Delta= 0.0237738797865
-# Delta= 0.0158829494949
-# Delta= 0.0105946062436
-# Delta= 0.0070592256064
+# BUILDING PROB MATRIX
+# START COMPUTING...
+# ---- ROUND: 1 out of 2
+# MDP
+# Delta= 0.468890972206
+# Delta= 0.10326293072
+# Delta= 0.077571605846
 # ---ACTION MATRIX---
 # Line: e
 # Col: l
-# 1     1     0     0     0    
-# 1     1     0     0     0    
-# 1     1     0     0     0    
-# 1     1     0     0     0    
-# 1     0     0     0     0    
-# 0     0     0     0     0    
-# ---ACTION MATRIX---
-# Line: e
-# Col: w
-# 1     1     1    
-# 1     1     1    
-# 1     1     1    
-# 1     1     1    
-# 0     0     0    
-# 0     0     0    
-# ---ACTION MATRIX---
-# Line: e
-# Col: w
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
-# ---ACTION MATRIX---
-# Line: e
-# Col: w
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
-# -------------------------------------------------------------
-# -------------------------------------------------------------
-# -------------------------------------------------------------
-# -------------------------------------------------------------
-# BUILDING PROB MATRIX
-# Delta= 1.68251660254
-# Delta= 0.694538569756
-# Delta= 0.269065661918
-# Delta= 0.168282009468
-# Delta= 0.116035455628
-# Delta= 0.0797433825193
-# Delta= 0.0547673322724
-# Delta= 0.0376102305748
-# Delta= 0.0258275262278
-# Delta= 0.0177360491942
-# Delta= 0.0121795031017
-# Delta= 0.0083637603647
+# 1     1     1     1     1     1     1     0     0     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     0     0     0     0     0    
+# 1     1     1     1     1     0     0     0     0     0     0    
+# 1     1     0     0     0     0     0     0     0     0     0    
+# 1     0     0     0     0     0     0     0     0     0     0    
+# 1     0     0     0     0     0     0     0     0     0     0    
+# 1     0     0     0     0     0     0     0     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# w=1
 # ---ACTION MATRIX---
 # Line: e
 # Col: l
-# 1     1     1     0     0    
-# 1     1     1     0     0    
-# 1     1     1     0     0    
-# 1     1     1     0     0    
-# 1     1     1     0     0    
-# 0     0     0     0     0    
+# 1     1     1     1     1     1     1     0     0     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     0     0     0     0     0    
+# 1     1     1     1     1     0     0     0     0     0     0    
+# 1     1     0     0     0     0     0     0     0     0     0    
+# 1     0     0     0     0     0     0     0     0     0     0    
+# 1     0     0     0     0     0     0     0     0     0     0    
+# 1     0     0     0     0     0     0     0     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# w=3
+# ---ACTION MATRIX---
+# Line: e
+# Col: l
+# 1     1     1     1     1     1     1     0     0     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     0     0     0     0     0    
+# 1     1     1     1     1     0     0     0     0     0     0    
+# 1     1     0     0     0     0     0     0     0     0     0    
+# 1     0     0     0     0     0     0     0     0     0     0    
+# 1     0     0     0     0     0     0     0     0     0     0    
+# 1     0     0     0     0     0     0     0     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# w=5
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# e=3
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# e=5
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# e=8
 # ---ACTION MATRIX---
 # Line: e
 # Col: w
-# 1     1     1    
-# 1     1     1    
-# 1     1     1    
-# 1     1     1    
-# 1     1     1    
-# 0     0     0    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# l=3
 # ---ACTION MATRIX---
 # Line: e
 # Col: w
-# 1     1     1    
-# 1     1     1    
-# 1     1     1    
-# 1     1     1    
-# 1     1     1    
-# 0     0     0    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# l=5
 # ---ACTION MATRIX---
 # Line: e
 # Col: w
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
-# 0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# l=8
+# -------------------------------------------------------------
+# -------------------------------------------------------------
+# -------------------------------------------------------------
+# -------------------------------------------------------------
+# ---- ROUND: 2 out of 2
+# MDP
+# Delta= 0.536675903192
+# Delta= 0.267624343442
+# Delta= 0.215412862355
+# Delta= 0.159389114344
+# Delta= 0.120575019889
+# Delta= 0.0923219067561
+# ---ACTION MATRIX---
+# Line: e
+# Col: l
+# 1     1     1     1     1     1     1     0     0     0     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# w=1
+# ---ACTION MATRIX---
+# Line: e
+# Col: l
+# 1     1     1     1     1     1     1     0     0     0     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# w=3
+# ---ACTION MATRIX---
+# Line: e
+# Col: l
+# 1     1     1     1     1     1     1     0     0     0     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# w=5
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# e=3
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# e=5
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# e=8
+# ---ACTION MATRIX---
+# Line: e
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# l=3
+# ---ACTION MATRIX---
+# Line: e
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# l=5
+# ---ACTION MATRIX---
+# Line: e
+# Col: w
+# 0     0     0     0     0     0    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# l=8
 # -------------------------------------------------------------
 # -------------------------------------------------------------
 # -------------------------------------------------------------
 # -------------------------------------------------------------
 
+
+
+if EXECNUM == 2:
+    # changing the peak
+    x_axis_list = [5,10]
+    
+    expnum = len(x_axis_list)
+    ParamsSet = [None for _ in range(expnum)]
+    TransProbSet = [None for _ in range(expnum)]
+    
+    PEAK = 0.8
+    
+    Matline = [[] for _ in range(len(x_axis_list))]
+    for line_index, itemline in enumerate(Matline):
+        for elem_index in range(L+1):
+            if elem_index == x_axis_list[line_index]:
+                Matline[line_index].append(PEAK)
+            else:
+                Matline[line_index].append((1.0-PEAK)/(L-1.0))
+    
+    
+    for ind, l_cur in enumerate(x_axis_list):
+        LMAT = [Matline[ind] for _ in range(0,L+1)]
+        ParamsSet[ind] = {'A':A, \
+                    'L':L, 'E':E, \
+                    'B':B, \
+                    'GAM':DISCOUNT_FACTOR,\
+                    'DELTA': DELTA, \
+                    'LMAT': LMAT, \
+                    'WMAT': None, \
+                    'SIG': None}
+        
+    for ind, e_cur in enumerate(x_axis_list):
+        TransProbSet[ind] = BuildTransMatrix(ParamsSet[ind])
+    
+    print "START COMPUTING..."
+    for ind, cur in enumerate(x_axis_list):
+        print "---- ROUND:", ind+1,
+        print "out of", len(x_axis_list)
+        
+        # e, l, w.
+        V, A = BellmanSolver(TransProbSet[ind], ParamsSet[ind])
+        
+        print "w=1"
+        ShowMatrix(A, mode='a', fixdim='w', fixnum=1, params=ParamsSet[ind])
+        print "w=3"
+        ShowMatrix(A, mode='a', fixdim='w', fixnum=2, params=ParamsSet[ind])
+        print "w=5"
+        ShowMatrix(A, mode='a', fixdim='w', fixnum=3, params=ParamsSet[ind])
+        
+        print "e=3"
+        ShowMatrix(A, mode='a', fixdim='e', fixnum=3, params=ParamsSet[ind])
+        print "3=5"
+        ShowMatrix(A, mode='a', fixdim='e', fixnum=5, params=ParamsSet[ind])
+        print "3=8"
+        ShowMatrix(A, mode='a', fixdim='e', fixnum=8, params=ParamsSet[ind])
+        
+        print "l=3"
+        ShowMatrix(A, mode='a', fixdim='l', fixnum=3, params=ParamsSet[ind])
+        print "l=5"
+        ShowMatrix(A, mode='a', fixdim='l', fixnum=5, params=ParamsSet[ind])
+        print "l=8"
+        ShowMatrix(A, mode='a', fixdim='l', fixnum=8, params=ParamsSet[ind])
+    
+        print '-------------------------------------------------------------'
+        print '-------------------------------------------------------------'
+        print '-------------------------------------------------------------'
+        print '-------------------------------------------------------------'
+        
+# BUILDING PROB MATRIX
+# BUILDING PROB MATRIX
+# START COMPUTING...
+# ---- ROUND: 1 out of 2
+# MDP
+# Delta= 0.488494803384
+# Delta= 0.243795558096
+# Delta= 0.205682748623
+# Delta= 0.176532885742
+# Delta= 0.109742975018
+# Delta= 0.0705086236687
+# w=1
+# ---ACTION MATRIX---
+# Line: e
+# Col: l
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# w=3
+# ---ACTION MATRIX---
+# Line: e
+# Col: l
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# w=5
+# ---ACTION MATRIX---
+# Line: e
+# Col: l
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# e=3
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 3=5
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 3=8
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# l=3
+# ---ACTION MATRIX---
+# Line: e
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# l=5
+# ---ACTION MATRIX---
+# Line: e
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# l=8
+# ---ACTION MATRIX---
+# Line: e
+# Col: w
+# 0     0     0     0     0     0    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# -------------------------------------------------------------
+# -------------------------------------------------------------
+# -------------------------------------------------------------
+# -------------------------------------------------------------
+# ---- ROUND: 2 out of 2
+# MDP
+# Delta= 0.456613651989
+# Delta= 0.240360488749
+# Delta= 0.203887857162
+# Delta= 0.182777252023
+# Delta= 0.158409847154
+# Delta= 0.136235481436
+# Delta= 0.117062234421
+# Delta= 0.100157593234
+# Delta= 0.0859105993424
+# w=1
+# ---ACTION MATRIX---
+# Line: e
+# Col: l
+# 1     1     0     0     0     0     0     0     0     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# w=3
+# ---ACTION MATRIX---
+# Line: e
+# Col: l
+# 1     1     0     0     0     0     0     0     0     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# w=5
+# ---ACTION MATRIX---
+# Line: e
+# Col: l
+# 1     1     0     0     0     0     0     0     0     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     1     0    
+# 1     1     1     1     1     1     1     1     1     0     0    
+# 1     1     1     1     1     1     1     1     0     0     0    
+# 0     0     0     0     0     0     0     0     0     0     0    
+# e=3
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 3=5
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 3=8
+# ---ACTION MATRIX---
+# Line: l
+# Col: w
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# l=3
+# ---ACTION MATRIX---
+# Line: e
+# Col: w
+# 0     0     0     0     0     0    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# l=5
+# ---ACTION MATRIX---
+# Line: e
+# Col: w
+# 0     0     0     0     0     0    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# l=8
+# ---ACTION MATRIX---
+# Line: e
+# Col: w
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 1     1     1     1     1     1    
+# 0     0     0     0     0     0    
+# 0     0     0     0     0     0    
+# -------------------------------------------------------------
+# -------------------------------------------------------------
+# -------------------------------------------------------------
+# -------------------------------------------------------------
