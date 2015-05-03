@@ -76,7 +76,7 @@ plot(x_axis_list,y_v_avg_one,color='blue',linestyle='--',fillstyle='none',marker
 plot(x_axis_list,y_v_avg_myo,color='green',linestyle='--',fillstyle='none',marker='^',label='MYO')
 plot(x_axis_list,y_v_avg_rnd,color='grey',linestyle='--',fillstyle='none',marker='v',label='RND')
 xlabel('Highest probability location $\mathcal{L}_h$',fontsize=16)
-ylabel('Expected overall utility',fontsize=16)
+ylabel('Expected utility',fontsize=16)
 subplots_adjust(top=0.93,bottom=0.16,left=0.12, right=0.95)
 legend(loc='best', fontsize=12, ncol=1,fancybox=True,shadow=True)
 locs, labels = plt.yticks()
