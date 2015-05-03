@@ -25,15 +25,16 @@ def CPLX(G,L,W,A, t):
             _tmp_sum = _tmp_sum + nCr(G,k)*nCr(A,k+1)
         return pow(A+_tmp_sum, L*W)
     elif t=='non-thresh':
-        print "A=",
-        print A
-        print "(G,L,W)=%d,%d,%d"%(G,L,W)
-        print
+
         return pow(A*1.0, G*L*W)
 
 A = 2
 L = 2
 W = 2
+
+A = 2
+L = 1
+W = 1
 
 #test
 
@@ -46,7 +47,8 @@ x_axis = []
 y_axis_thresh = []
 y_axis_nonthresh = []
  
-for g in range(10,51):
+# for g in range(10,51):
+for g in range(1,10):
 #     G = 10*(g+1)
     G = g
     x_axis.append(G)
@@ -54,9 +56,10 @@ for g in range(10,51):
     y_axis_nonthresh.append(CPLX(G,L,W,A, 'non-thresh'))
 
 
+
 plt.figure(figsize=(7.0,4.2))
 # grid(True, which="both")
-# plot(x_axis,y_axis_thresh,color='red',lw=2,label='Threshold policy')
+plot(x_axis,y_axis_thresh,color='red',lw=2,label='Threshold policy')
 plot(x_axis,y_axis_nonthresh,color='black', lw=2, ls='--',label='Non-threshold policy')
 
 xlabel('Total number of energy states $|\mathbb{G}|$',fontsize=16)
