@@ -30,19 +30,19 @@ def CompareMat(m1,m2, params):
         for l in rangeL:
             for w in rangeW:
                 if (not m1[e][l][w]==m2[e][l][w]):
-                    print "(%d,%d,%d): %d v.s.%d" %(e,l,w,m1[e][l][w],m2[e][l][w])
+                    print("(%d,%d,%d): %d v.s.%d" %(e,l,w,m1[e][l][w],m2[e][l][w]))
 
 def ShowMatrix(Mat, mode, fixdim, fixnum, params):
     if Mat==None:
-        print "ERROR INPUT ShowMatrix()"
+        print("ERROR INPUT ShowMatrix()")
         exit()
     
     if mode=='a':   # Show action
-        print "---ACTION MATRIX---"
+        print("---ACTION MATRIX---")
     elif mode=='v':    # Show value
-        print "---VALUE MATRIX---"
+        print("---VALUE MATRIX---")
     else:
-        print "ERROR, UNKNOWN MATRIX"
+        print("ERROR, UNKNOWN MATRIX")
         exit()
     
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
@@ -50,39 +50,39 @@ def ShowMatrix(Mat, mode, fixdim, fixnum, params):
     feasList = [rangeE, rangeL, rangeW]
     del(feasList[dimList.index(fixdim)])
     del(dimList[dimList.index(fixdim)])
-    print 'Line:', dimList[0]
-    print 'Col:', dimList[1] 
+    print('Line:%d'%(dimList[0]))
+    print('Col:%d'%(dimList[1]))
     for ra in feasList[0]:
         for rb in feasList[1]:
             if fixdim=='e':
                 if mode=='a':
-                    print "%d" % Mat[fixnum][ra][rb],
+                    print("%d" % Mat[fixnum][ra][rb],end=", ")
                 elif mode=='v':
-                    print "%8.3f" % Mat[fixnum][ra][rb],
+                    print("%8.3f" % Mat[fixnum][ra][rb],end=", ")
                 else:
-                    print "ERROR, POS 1"
+                    print("ERROR, POS 1")
                     exit()
-                print '   ',
+                #print('   '),
             elif fixdim=='l':
                 if mode=='a':
-                    print "%d" % Mat[ra][fixnum][rb],
+                    print("%d" % Mat[ra][fixnum][rb],end=", ")
                 elif mode=='v':
-                    print "%8.3f" % Mat[ra][fixnum][rb],
+                    print("%8.3f" % Mat[ra][fixnum][rb],end=", ")
                 else:
-                    print "ERROR, POS 2"
+                    print("ERROR, POS 2")
                     exit()
-                print '   ',
+                #print '   ',
             elif fixdim=='w':
                 if mode=='a':
-                    print "%d" % Mat[ra][rb][fixnum],
+                    print("%d" % Mat[ra][rb][fixnum],end=", ")
                 elif mode=='v':
-                    print "%8.3f" % Mat[ra][rb][fixnum],
+                    print("%8.3f" % Mat[ra][rb][fixnum],end=", ")
                 else:
-                    print "ERROR, POS 3"
+                    print("ERROR, POS 3")
                     exit()
-                print '   ',
+                #print '   ',
             else:
-                print "ERROR, POS 4"
+                print("ERROR, POS 4")
                 exit()
         print
 
@@ -308,7 +308,7 @@ def BuildTransMatrix(params):
                   for _ in rangeW ]
                  for _ in rangeL ]
                 for _ in rangeE ]
-    print "BUILDING PROB MATRIX"
+    print("BUILDING PROB MATRIX")
     for e1 in rangeE:
         for l1 in rangeL:
             for w1 in rangeW:

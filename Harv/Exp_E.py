@@ -9,9 +9,7 @@ import multiprocessing
 
 import sys
 #sys.path.append("..")
-from ..HasrvCore import func
-from func import *
-#from ..HarvCore.func import *
+from HarvCore.func import *
 
 # READ_TRANSMAT_FROM_FILE = True
 
@@ -96,13 +94,13 @@ for ind, e_cur in enumerate(E_list):
     RESset_rnd[ind] = RE
             
 print("Dumping...", end=" ")
-pickle.dump(expnum, open("../results/E_changing/expnum","w"))
-pickle.dump(ParamsSet, open("../results/E_changing/Paramsset","w"))
-pickle.dump(E_list, open("../results/E_changing/xaxis","w"))
-pickle.dump(RESset_bell, open("../results/E_changing/bell","w"))
-pickle.dump(RESset_myo, open("../results/E_changing/myo","w"))
-pickle.dump(RESset_zero, open("../results/E_changing/zero","w"))
-pickle.dump(RESset_one, open("../results/E_changing/one","w"))
-pickle.dump(RESset_rnd, open("../results/E_changing/rnd","w"))
+pickle.dump(expnum, open("./results/E_changing/expnum","w"))
+pickle.dump(ParamsSet, open("./results/E_changing/Paramsset","w"))
+pickle.dump(E_list, open("./results/E_changing/xaxis","w"))
+pickle.dump(RESset_bell, open("./results/E_changing/bell","w"))
+pickle.dump(RESset_myo, open("./results/E_changing/myo","w"))
+pickle.dump(RESset_zero, open("./results/E_changing/zero","w"))
+pickle.dump(RESset_one, open("./results/E_changing/one","w"))
+pickle.dump(RESset_rnd, open("./results/E_changing/rnd","w"))
 print("Finished")
 

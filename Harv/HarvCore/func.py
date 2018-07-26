@@ -15,7 +15,7 @@ from copy import deepcopy
 import random
 import time
 
-from HarvCore.header import *    
+from .header import *    
 
 ###################################################################################
 ###################################################################################
@@ -78,7 +78,7 @@ def ImmediateProfit(e1,l1,w1,act, params):
 
 
 def BellmanSolver(TransProb, params):
-    print "MDP"
+    print("MDP")
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
     V_op = [[[0.0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
     A_op = [[[  0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
@@ -104,7 +104,7 @@ def BellmanSolver(TransProb, params):
                         V_op[e1][l1][w1] = _v_temp[1]
                         A_op[e1][l1][w1] = 1
                     else:
-                        print "ERROR IN BellmanSolver(params)"
+                        print("ERROR IN BellmanSolver(params)")
                         exit(0)
                     
                     if e1==params['E']:
@@ -112,12 +112,12 @@ def BellmanSolver(TransProb, params):
                         A_op[e1][l1][w1] = 0
 
                     delta = delta if delta>np.fabs(V_op[e1][l1][w1]-_v_old) else np.fabs(V_op[e1][l1][w1]-_v_old)
-        print "Delta=",delta
+        print("Delta=%f"%(delta))
         if delta < params['DELTA']:
             return V_op, A_op
 
 def NaiveSolver_Myopic(TransProb, params):
-    print "Myopic."
+    print("Myopic.")
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
 
     V = [[[0.0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
@@ -144,14 +144,14 @@ def NaiveSolver_Myopic(TransProb, params):
                                 _s_tmp = _s_tmp + TransProb[e1][l1][w1][e2][l2][w2][act] * V[e2][l2][w2]
                     V[e1][l1][w1] = ImmediateProfit(e1,l1,w1,act, params) + params['GAM'] * _s_tmp
                     delta = delta if delta>np.fabs(V[e1][l1][w1] -_v_old) else np.fabs(V[e1][l1][w1] -_v_old)
-        print "Delta=",delta
+        print("Delta=%f"%(delta))
         if delta < params['DELTA']:
             break
 
     return V, A
 
 def NaiveSolver_Rnd(TransProb, params):
-    print "Random"
+    print("Random")
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
     V = [[[0.0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
     A = [[[0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
@@ -178,16 +178,16 @@ def NaiveSolver_Rnd(TransProb, params):
                                 _s_tmp = _s_tmp + TransProb[e1][l1][w1][e2][l2][w2][act] * V[e2][l2][w2]
                     V[e1][l1][w1] = ImmediateProfit(e1,l1,w1,act, params) + params['GAM'] * _s_tmp
                     delta = delta if delta>np.fabs(V[e1][l1][w1] -_v_old) else np.fabs(V[e1][l1][w1] -_v_old)
-        print "Delta=",delta
+        print("Delta=%f"%(delta))
         if delta < params['DELTA']:
             break
     return V, A
 
 def NaiveSolver_AllSame(TransProb, act_input, params):
     if act_input not in [0,1]:
-        print "ERROR NaiveSolver_AllSame(act_input=0)"
+        print("ERROR NaiveSolver_AllSame(act_input=0)")
         exit(0)
-    print "All " + str(act_input) + " Scheme, running."
+    print ("All %s Scheme, running."%(str(act_input)))
     rangeE, rangeL, rangeW = range(params['E']+1), range(params['L']+1), range(params['A']+1)
 
     V = [[[0.0 for _ in rangeW] for _ in rangeL] for _ in rangeE]
@@ -215,7 +215,7 @@ def NaiveSolver_AllSame(TransProb, act_input, params):
                                 _s_tmp = _s_tmp + TransProb[e1][l1][w1][e2][l2][w2][act] * V[e2][l2][w2]
                     V[e1][l1][w1] = ImmediateProfit(e1,l1,w1,act, params) + params['GAM'] * _s_tmp
                     delta = delta if delta>np.fabs(V[e1][l1][w1] -_v_old) else np.fabs(V[e1][l1][w1] -_v_old)
-        print "Delta=",delta
+        print("Delta=%s"%(delta))
         if delta < params['DELTA']:
             break
     return V, A
