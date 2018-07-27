@@ -14,14 +14,14 @@ import sys
 sys.path.append("..")
 #from HarvCore.func import *
 
-expnum = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/E_changing/expnum","rb"))
-x_axis_list = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/E_changing/xaxis","rb"))
+expnum = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/L_changing/expnum","rb"))
+x_axis_list = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/L_changing/xaxis","rb"))
 
-RESset_bell = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/E_changing/bell","rb"))
-RESset_myo = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/E_changing/myo","rb"))
-RESset_zero = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/E_changing/zero","rb"))
-RESset_one = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/E_changing/one","rb"))
-RESset_rnd = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/E_changing/rnd","rb"))
+RESset_bell = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/L_changing/bell","rb"))
+RESset_myo = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/L_changing/myo","rb"))
+RESset_zero = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/L_changing/zero","rb"))
+RESset_one = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/L_changing/one","rb"))
+RESset_rnd = pickle.load(open("C:/Users/YZHAN/Documents/GitHub/TWC_Spring2014_Code/Harv/results/L_changing/rnd","rb"))
 
 
 # def GetOptResultList(V,A, params):
@@ -72,7 +72,7 @@ plot(x_axis_list,y_v_avg_zero,color='black',linestyle='--',fillstyle='none',mark
 plot(x_axis_list,y_v_avg_one,color='blue',linestyle='--',fillstyle='none',marker='x',label='$\mathcal{A}=1$')
 plot(x_axis_list,y_v_avg_myo,color='green',linestyle='--',fillstyle='none',marker='^',label='MYO')
 plot(x_axis_list,y_v_avg_rnd,color='grey',linestyle='--',fillstyle='none',marker='v',label='RND')
-xlabel('Maximum energy capacity $E$',fontsize=16)
+xlabel('$L$',fontsize=16)
 ylabel('Expected utility',fontsize=16)
 subplots_adjust(top=0.93,bottom=0.16,left=0.12, right=0.95)
 legend(loc='best', fontsize=12, ncol=1,fancybox=True,shadow=True)
@@ -122,7 +122,7 @@ plot(x_axis_list,y_a_steady_zero,color='black',linestyle='--',fillstyle='none',m
 plot(x_axis_list,y_a_steady_one,color='blue',linestyle='--',fillstyle='none',marker='x',label='$\mathcal{A}=1$')
 plot(x_axis_list,y_a_steady_myo,color='green',linestyle='--',fillstyle='none',marker='^',label='MYO')
 plot(x_axis_list,y_a_steady_rnd,color='grey',linestyle='--',fillstyle='none',marker='v',label='RND')
-xlabel('Maximum energy capacity $E$',fontsize=16)
+xlabel('$L$',fontsize=16)
 ylabel('Charging rate',fontsize=16) # steady state
 subplots_adjust(top=0.93,bottom=0.16,left=0.12, right=0.95)
 legend(loc=(0.05, 0.13), fontsize=12, ncol=1,fancybox=True,shadow=True)
@@ -141,7 +141,7 @@ plot(x_axis_list,y_blocking_zero,color='black',linestyle='--',fillstyle='none',m
 plot(x_axis_list,y_blocking_one,color='blue',linestyle='--',fillstyle='none',marker='x',label='$\mathcal{A}=1$')
 plot(x_axis_list,y_blocking_myo,color='green',linestyle='--',fillstyle='none',marker='^',label='MYO')
 plot(x_axis_list,y_blocking_rnd,color='grey',linestyle='--',fillstyle='none',marker='v',label='RND')
-xlabel('Maximum energy capacity $E$',fontsize=16)
+xlabel('$L$',fontsize=16)
 ylabel('Insufficient energy prob.',fontsize=16)
 subplots_adjust(top=0.93,bottom=0.16,left=0.12, right=0.95)
 legend(loc=(0.42, 0.50), fontsize=12, ncol=2, fancybox=True,shadow=True)
@@ -159,7 +159,7 @@ plot(x_axis_list,y_e_steady_zero,color='black',linestyle='--',fillstyle='none',m
 plot(x_axis_list,y_e_steady_one,color='blue',linestyle='--',fillstyle='none',marker='x',label='$\mathcal{A}=1$')
 plot(x_axis_list,y_e_steady_myo,color='green',linestyle='--',fillstyle='none',marker='^',label='MYO')
 plot(x_axis_list,y_e_steady_rnd,color='grey',linestyle='--',fillstyle='none',marker='v',label='RND')
-xlabel('Maximum energy capacity $E$',fontsize=16)
+xlabel('$L$',fontsize=16)
 ylabel('Energy storage level',fontsize=16)
 subplots_adjust(top=0.93,bottom=0.16,left=0.12, right=0.95)
 # legend(loc=(0.05,0.78), fontsize=12, ncol=2,fancybox=True,shadow=True)
